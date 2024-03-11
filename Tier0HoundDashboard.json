@@ -1,8 +1,6 @@
 {
   "title": "Tier 0 Hound Dashboard",
   "version": "2.4",
-  "_tier0houndVersion": "20231211",
-  "_tier0houndSource": "https://github.com/m8r1us/Tier0Hound",
   "settings": {
     "pagenumber": 0,
     "editable": true,
@@ -102,8 +100,8 @@
           "query": "MATCH (c:Computer)-[:HasSession]->()\nWITH COUNT(DISTINCT(c)) as computersWithSessions\nMATCH (c2:Computer)\nRETURN toInteger(100 * (toFloat(computersWithSessions) / COUNT(c2))) as PercentComputersWithSessions",
           "width": 8,
           "height": 4,
-          "x": 8,
-          "y": 12,
+          "x": 16,
+          "y": 20,
           "type": "gauge",
           "selection": {},
           "settings": {},
@@ -115,8 +113,8 @@
           "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n)-[r:AdminTo]->(c) WITH c,COUNT(n) as expAdmins OPTIONAL MATCH (n)-[r:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(c) WITH c,expAdmins,COUNT(DISTINCT(n)) as unrolledAdmins RETURN SPLIT(c.name,'.')[0] as hostname,expAdmins,unrolledAdmins,expAdmins + unrolledAdmins as totalAdmins ORDER BY totalAdmins DESC LIMIT 15\n\n\n",
           "width": 8,
           "height": 4,
-          "x": 16,
-          "y": 12,
+          "x": 8,
+          "y": 28,
           "type": "bar",
           "selection": {
             "index": "hostname",
@@ -126,33 +124,36 @@
           "settings": {
             "layout": "horizontal",
             "marginLeft": 120,
-            "hideSelections": true
+            "hideSelections": true,
+            "barValues": true
           },
           "schema": []
         },
         {
           "id": "cc109b16-2d78-474f-8f50-c7f7bd3cce30",
-          "title": "Top 300 computers by # admins",
-          "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n)-[r:AdminTo]->(c) WITH c,COUNT(n) as expAdmins OPTIONAL MATCH (n)-[r:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(c) WITH c,expAdmins,COUNT(DISTINCT(n)) as unrolledAdmins RETURN SPLIT(c.name,'.')[0] as system,expAdmins + unrolledAdmins as AdminCount ORDER BY AdminCount desc LIMIT 150\n\n\n",
+          "title": "Top 15 computers by # admins",
+          "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n:User)-[r:AdminTo]->(c) WITH c,COUNT(n) as expAdmins OPTIONAL MATCH (n:User)-[r:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(c) WITH c,expAdmins,COUNT(DISTINCT(n)) as unrolledAdmins RETURN c.name as system,expAdmins + unrolledAdmins as AdminCount ORDER BY AdminCount desc LIMIT 15\n\n\n",
           "width": 8,
           "height": 4,
           "x": 0,
-          "y": 16,
-          "type": "line",
+          "y": 28,
+          "type": "bar",
           "selection": {
-            "x": "system",
-            "value": [
-              "AdminCount"
-            ]
+            "index": "system",
+            "value": "AdminCount",
+            "key": "(none)"
           },
           "settings": {
             "xScale": "point",
-            "legend": true,
+            "legend": false,
             "curve": "step",
             "fullscreenEnabled": true,
             "hideSelections": true,
             "pointSize": 1,
-            "interactive": true
+            "interactive": true,
+            "layout": "horizontal",
+            "marginLeft": 200,
+            "barValues": true
           },
           "schema": []
         },
@@ -162,8 +163,8 @@
           "query": "MATCH (c:Computer) WITH c \nOPTIONAL MATCH (n)-[r:AdminTo]->(c) \nWITH c,COUNT(n) as expAdmins \nOPTIONAL MATCH (n)-[r:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(c) \nWITH c,expAdmins,COUNT(DISTINCT(n)) as unrolledAdmins \nRETURN AVG(expAdmins + unrolledAdmins) as avgTotalAdmins\n\n\n",
           "width": 8,
           "height": 4,
-          "x": 8,
-          "y": 16,
+          "x": 16,
+          "y": 24,
           "type": "value",
           "selection": {},
           "settings": {
@@ -174,7 +175,7 @@
         {
           "id": "2eba82a8-30b5-4ad0-a94d-da47d237ce21",
           "title": "Top 15 outbound control rights (First Degree Object Control) (highvalue=false)",
-          "query": "MATCH p=(u)-[r1]->(n) WHERE r1.isacl=true  and u.tier0<>true\nWITH u.samaccountname as name, LABELS(u)[1] as type, \nCOUNT(DISTINCT(n)) as controlled \nWHERE name IS NOT NULL \nRETURN type, name, controlled \nORDER BY controlled desc\nLIMIT 15\n\n\n",
+          "query": "MATCH p=(u)-[r1]->(n) WHERE r1.isacl=true  and u.tier0<>true\nWITH u.name as name, LABELS(u)[1] as type, \nCOUNT(DISTINCT(n)) as controlled \nWHERE name IS NOT NULL \nRETURN type, name, controlled \nORDER BY controlled desc\nLIMIT 15\n\n\n",
           "width": 8,
           "height": 4,
           "x": 16,
@@ -193,7 +194,7 @@
             "valueScale": "linear",
             "hideSelections": true,
             "showOptionalSelections": false,
-            "marginLeft": 150,
+            "marginLeft": 300,
             "marginBottom": 45
           },
           "schema": []
@@ -201,11 +202,11 @@
         {
           "id": "63fa7f47-3a8b-4615-88f6-154835764877",
           "title": "Top 15 degree centrality algorithm (all)",
-          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.degree.stream('fullgraph')\nYIELD nodeId,score\nWhere gds.util.asNode(nodeId).samaccountname <> \"\"\nRETURN gds.util.asNode(nodeId).samaccountname AS name, labels(gds.util.asNode(nodeId)) as label, score\nORDER BY score desc limit 15\n\n",
+          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.degree.stream('fullgraph')\nYIELD nodeId,score\nWhere gds.util.asNode(nodeId).name <> \"\"\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score\nORDER BY score desc limit 15\n\n",
           "width": 8,
           "height": 4,
           "x": 0,
-          "y": 24,
+          "y": 16,
           "type": "bar",
           "selection": {
             "index": "name",
@@ -221,7 +222,7 @@
             "hideSelections": true,
             "showOptionalSelections": false,
             "refreshButtonEnabled": true,
-            "marginLeft": 150,
+            "marginLeft": 300,
             "marginBottom": 45,
             "marginTop": 0,
             "fullscreenEnabled": true,
@@ -233,11 +234,11 @@
         {
           "id": "e88a25b8-5b2d-4613-9dee-034651c22393",
           "title": "(Tier0=false) Top 15 degree centrality algorithm",
-          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.degree.stream('fullgraph')\nYIELD nodeId,score\nwhere gds.util.asNode(nodeId).tier0=false and gds.util.asNode(nodeId).samaccountname <> \"\"\nRETURN gds.util.asNode(nodeId).samaccountname AS name, labels(gds.util.asNode(nodeId)) as label, score\nORDER BY score desc limit 15\n",
+          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.degree.stream('fullgraph')\nYIELD nodeId,score\nwhere gds.util.asNode(nodeId).tier0=false and gds.util.asNode(nodeId).name <> \"\"\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score\nORDER BY score desc limit 15\n",
           "width": 8,
           "height": 4,
           "x": 8,
-          "y": 24,
+          "y": 16,
           "type": "bar",
           "selection": {
             "index": "name",
@@ -253,7 +254,7 @@
             "hideSelections": true,
             "showOptionalSelections": false,
             "refreshButtonEnabled": true,
-            "marginLeft": 150,
+            "marginLeft": 320,
             "marginBottom": 45,
             "marginTop": 0,
             "fullscreenEnabled": true,
@@ -265,11 +266,11 @@
         {
           "id": "65dd3ef8-7253-400f-af30-aee7335fd72a",
           "title": "(Tier0=false) Top 15 closeness centrality algorithm",
-          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.beta.closeness.stream('fullgraph')\nYIELD nodeId, score\nwhere gds.util.asNode(nodeId).tier0=false and gds.util.asNode(nodeId).samaccountname <> \"\"\nRETURN gds.util.asNode(nodeId).samaccountname AS name, labels(gds.util.asNode(nodeId)) as label, score*100 as score\nORDER BY score desc limit 15",
+          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.beta.closeness.stream('fullgraph')\nYIELD nodeId, score\nwhere gds.util.asNode(nodeId).tier0=false and gds.util.asNode(nodeId).name <> \"\"\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score*100 as score\nORDER BY score desc limit 15",
           "width": 8,
           "height": 4,
-          "x": 8,
-          "y": 20,
+          "x": 16,
+          "y": 12,
           "type": "bar",
           "selection": {
             "index": "name",
@@ -285,12 +286,19 @@
             "hideSelections": true,
             "showOptionalSelections": false,
             "refreshButtonEnabled": true,
-            "marginLeft": 150,
+            "marginLeft": 320,
             "marginBottom": 45,
             "marginTop": 0,
             "fullscreenEnabled": true,
             "description": "The closeness centrality algorithm measures the nodes' average farness to all other nodes and generates a list of nodes that are able to propagate information efficiently through a graph. Nodes with a high closeness score have the shortest distances to all other nodes, which makes them privileged entities",
-            "autorun": false
+            "autorun": false,
+            "positionLabel": "off",
+            "expandHeightForLegend": false,
+            "legendPosition": "Vertical",
+            "customDimensions": false,
+            "labelRotation": 0,
+            "marginRight": 24,
+            "barWidth": 7
           },
           "schema": []
         },
@@ -300,8 +308,8 @@
           "query": "MATCH (g:Group)-[:AdminTo]->(c:Computer) RETURN SPLIT(g.name,'@')[0] as GroupName,COUNT(c) as adminCount ORDER BY adminCount DESC LIMIT 15",
           "width": 8,
           "height": 4,
-          "x": 0,
-          "y": 20,
+          "x": 16,
+          "y": 28,
           "type": "bar",
           "selection": {
             "index": "GroupName",
@@ -363,11 +371,11 @@
         {
           "id": "84b73d5c-891b-4815-9b0f-c6b4e41f3563",
           "title": "Top 15 closeness centrality algorithm",
-          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.beta.closeness.stream('fullgraph')\nYIELD nodeId, score\nwhere gds.util.asNode(nodeId).samaccountname <> \"\"\nRETURN gds.util.asNode(nodeId).samaccountname AS name, labels(gds.util.asNode(nodeId)) as label, score*100 as score\nORDER BY score desc limit 15",
+          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.beta.closeness.stream('fullgraph')\nYIELD nodeId, score\nwhere gds.util.asNode(nodeId).name <> \"\"\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score*100 as score\nORDER BY score desc limit 15",
           "width": 8,
           "height": 4,
-          "x": 16,
-          "y": 20,
+          "x": 8,
+          "y": 12,
           "type": "bar",
           "selection": {
             "index": "name",
@@ -383,7 +391,7 @@
             "hideSelections": true,
             "showOptionalSelections": false,
             "refreshButtonEnabled": true,
-            "marginLeft": 150,
+            "marginLeft": 300,
             "marginBottom": 45,
             "marginTop": 0,
             "fullscreenEnabled": true,
@@ -418,6 +426,134 @@
           "type": "table",
           "selection": {},
           "settings": {}
+        },
+        {
+          "id": "a54ab962-3230-490d-98c7-04ac0962b1b3",
+          "title": "Kerberoastable Accounts",
+          "query": "MATCH (u:User {enabled: true, hasspn: true}) WHERE NOT u.name STARTS WITH 'KRBTGT'\nRETURN DISTINCT(u.name) as name ",
+          "width": 8,
+          "height": 4,
+          "x": 8,
+          "y": 20,
+          "type": "table",
+          "selection": {},
+          "settings": {}
+        },
+        {
+          "id": "cb6a446f-692f-4b8c-a2be-24646219ea79",
+          "title": "ASREP roastable",
+          "query": "MATCH (u {enabled: true, dontreqpreauth: true}) \nRETURN DISTINCT(u.name) as name ",
+          "width": 8,
+          "height": 4,
+          "x": 0,
+          "y": 20,
+          "type": "table",
+          "selection": {},
+          "settings": {}
+        },
+        {
+          "id": "adfb932f-2f52-43a6-a554-7535f6885645",
+          "title": " Top 15 Computers with most sessions",
+          "query": "Match (c:Computer)-[r:HasSession]->(u:User)\n                            WITH c,COUNT(u) as session\n                            RETURN c.name,session\n                            ORDER BY session DESC Limit 15",
+          "width": 8,
+          "height": 4,
+          "x": 8,
+          "y": 24,
+          "type": "bar",
+          "selection": {
+            "index": "c.name",
+            "value": "session",
+            "key": "(none)"
+          },
+          "settings": {
+            "layout": "horizontal",
+            "marginLeft": 200,
+            "hideSelections": true,
+            "barValues": true
+          },
+          "schema": []
+        },
+        {
+          "id": "ebc9b8ed-d231-44b9-8e6d-2d419e4e5b23",
+          "title": " Top 15 Users with most sessions",
+          "query": "MATCH (u:User)<-[s:HasSession]-(c:Computer)\n                            WITH u, count(s) as session\n                            RETURN u.name,session\n                            ORDER BY session DESC\n                            LIMIT 15",
+          "width": 8,
+          "height": 4,
+          "x": 0,
+          "y": 24,
+          "type": "bar",
+          "selection": {
+            "index": "u.name",
+            "value": "session",
+            "key": "(none)"
+          },
+          "settings": {
+            "layout": "horizontal",
+            "marginLeft": 200,
+            "hideSelections": true,
+            "barValues": true
+          },
+          "schema": []
+        },
+        {
+          "id": "635886eb-b2a5-4c0d-a230-5fdcdf80a93a",
+          "title": "Local Admins",
+          "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n:User)-[r:AdminTo]->(c) WITH c OPTIONAL MATCH (n:User)-[r:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(c) WITH n RETURN distinct(n.name) as name",
+          "width": 8,
+          "height": 4,
+          "x": 0,
+          "y": 32,
+          "type": "table",
+          "selection": {},
+          "settings": {
+            "layout": "horizontal",
+            "marginLeft": 200,
+            "hideSelections": true,
+            "barValues": true,
+            "refreshButtonEnabled": true
+          },
+          "schema": []
+        },
+        {
+          "id": "b3f5b1fe-59c8-421f-8385-3509d22c4d9e",
+          "title": "Top 15 computers with RemoteDesktopUser rights",
+          "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n)-[r:CanRDP]->(c) WITH c,COUNT(n) as expAdmins OPTIONAL MATCH (n)-[r:MemberOf*1..]->(g:Group)-[r2:CanRDP]->(c) WITH c,expAdmins,COUNT(DISTINCT(n)) as unrolledAdmins RETURN c.name as hostname,expAdmins,unrolledAdmins,expAdmins + unrolledAdmins as totalAdmins ORDER BY totalAdmins DESC LIMIT 15\n\n\n",
+          "width": 8,
+          "height": 4,
+          "x": 8,
+          "y": 32,
+          "type": "bar",
+          "selection": {
+            "index": "hostname",
+            "value": "totalAdmins",
+            "key": "(none)"
+          },
+          "settings": {
+            "layout": "horizontal",
+            "marginLeft": 120,
+            "hideSelections": true,
+            "barValues": true
+          },
+          "schema": []
+        },
+        {
+          "id": "95c65ba1-d8d2-489c-8670-e1a53a54642a",
+          "title": "Can RDP",
+          "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n)-[r:CanRDP]->(c) WITH c OPTIONAL MATCH (n)-[r:MemberOf*1..]->(g:Group)-[r2:CanRDP]->(c) WITH n RETURN distinct(n.name) as name",
+          "width": 8,
+          "height": 4,
+          "x": 16,
+          "y": 32,
+          "type": "table",
+          "selection": {},
+          "settings": {
+            "layout": "horizontal",
+            "marginLeft": 200,
+            "hideSelections": true,
+            "barValues": true,
+            "refreshButtonEnabled": true
+          },
+          "schema": []
         }
       ]
     }
@@ -430,5 +566,7 @@
       "active": true
     }
   },
+  "_tier0houndVersion": "20240311",
+  "_tier0houndSource": "https://github.com/m8r1us/Tier0Hound",
   "uuid": "9934707a-5c7e-4077-9e43-a1460e969ec8"
 }
