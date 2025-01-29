@@ -4,8 +4,11 @@
   "settings": {
     "pagenumber": 0,
     "editable": true,
-    "fullscreenEnabled": false,
-    "parameters": {},
+    "fullscreenEnabled": true,
+    "parameters": {
+      "neodash_domain_name": "",
+      "neodash_domain_name_display": ""
+    },
     "theme": "light",
     "queryTimeLimit": 30000,
     "downloadImageEnabled": true
@@ -16,8 +19,8 @@
       "reports": [
         {
           "id": "ed994c68-297b-49cc-a0bb-8030aa24f5a4",
-          "title": "Active Directory Overview",
-          "query": "MATCH (u:User) \nRETURN \"Users in total (Enabled and Disabled)\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true}) \nRETURN \"Users in total (Enabled)\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: false}) \nRETURN \"Disabled Users\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:Computer {enabled: true}) \nRETURN \"Computers in total\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:Group) \nRETURN \"Groups in total\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:Domain) \nRETURN \"Domains in total\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:OU) \nRETURN \"OUs in total\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:GPO) \nRETURN \"GPOs in total\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, hasspn: true}) WHERE NOT u.name STARTS WITH 'KRBTGT'\nRETURN \"Kerberoastable Service Accounts (~)\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u {tier0: true}) \nRETURN \"Tier-0 objects\" AS what, count(u) AS number\nUNION ALL\n\nMATCH (u {tier1: true}) \nRETURN \"Tier-1 objects\" AS what, count(u) AS number\nUNION ALL\n\nMATCH (u {tier2: true}) \nRETURN \"Tier-2 objects\" AS what, count(u) AS number\nUNION ALL\n\nMATCH (u:User {enabled: true, admincount: true}) \nRETURN \"Admin Count Users\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u {highvalue: true}) \nRETURN \"Highvalue objects\" AS what, count(u) AS number\nUNION ALL\n\nMATCH (u:User {enabled: true, allowedtodelegate: true}) \nRETURN \"Users with Allowed to Delegate\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, unconstraineddelegation: true}) \nRETURN \"Users with Unconstrained Delegation\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:Computer {enabled: true, unconstraineddelegation: true}) WHERE (NOT u.distinguishedname CONTAINS 'DOMAIN CONTROLLERS') \nRETURN \"Computers with Unconstrained Delegation\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, passwordnotreqd: true}) \nRETURN \"Users with Password Not Required\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, pwdneverexpires: true}) \nRETURN \"Users with Password Never Expires\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, dontreqpreauth: true}) \nRETURN \"Users with Dont Require Pre-Authentication (ASREP roastable)\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds: toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset, datetime({ epochSeconds: toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds: toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon \nWHERE days_since_pwdlastset > 90 AND days_since_lastlogon < 7 \nRETURN \"Enabled Users pwdlastset > 90 days and lastlogon < 7 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds: toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset \nWHERE days_since_pwdlastset > 90 \nRETURN \"Enabled Users pwdlastset > 90 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds: toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon \nWHERE days_since_lastlogon > 90 \nRETURN \"Enabled Users lastlogon > 180 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u:User {enabled: false}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds: toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset, datetime({ epochSeconds: toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds: toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon \nWHERE days_since_pwdlastset > 90 AND days_since_lastlogon < 7 \nRETURN \"Disabled Users pwdlastset > 90 days and lastlogon < 7 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u:User {enabled: false}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds: toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset \nWHERE days_since_pwdlastset > 90 \nRETURN \"Disabled Users pwdlastset > 90 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u:User {enabled: false}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds: toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon \nWHERE days_since_lastlogon > 90 \nRETURN \"Disabled Users lastlogon > 180 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u {owned: true})\nRETURN \"Compromised Accounts during the Assessment\" AS what, count(u) AS number ",
+          "title": "$neodash_domain_name Overview",
+          "query": "MATCH (u:User{domain:$neodash_domain_name}) \nRETURN \"Users in total (Enabled and Disabled)\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, domain:$neodash_domain_name}) \nRETURN \"Users in total (Enabled)\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: false, domain:$neodash_domain_name}) \nRETURN \"Disabled Users\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:Computer {enabled: true, domain:$neodash_domain_name}) \nRETURN \"Computers in total\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:Group{domain:$neodash_domain_name}) \nRETURN \"Groups in total\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:Domain{domain:$neodash_domain_name}) \nRETURN \"Domains in total\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:OU{domain:$neodash_domain_name}) \nRETURN \"OUs in total\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:GPO{domain:$neodash_domain_name}) \nRETURN \"GPOs in total\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, hasspn: true,domain:$neodash_domain_name}) WHERE NOT u.name STARTS WITH 'KRBTGT'\nRETURN \"Kerberoastable Service Accounts (~)\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u {highvalue: true,domain:$neodash_domain_name}) \nRETURN \"Tier-0 objects\" AS what, count(u) AS number\nUNION ALL\n\nMATCH (u {tier1: true,domain:$neodash_domain_name}) \nRETURN \"Tier-1 objects\" AS what, count(u) AS number\nUNION ALL\n\nMATCH (u {tier2: true,domain:$neodash_domain_name}) \nRETURN \"Tier-2 objects\" AS what, count(u) AS number\nUNION ALL\n\nMATCH (u:User {enabled: true, admincount: true,domain:$neodash_domain_name}) \nRETURN \"Admin Count Users\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u {highvalue: true,domain:$neodash_domain_name}) \nRETURN \"Highvalue objects\" AS what, count(u) AS number\nUNION ALL\n\nMATCH (u:User {enabled: true, allowedtodelegate: true,domain:$neodash_domain_name}) \nRETURN \"Users with Allowed to Delegate\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, unconstraineddelegation: true,domain:$neodash_domain_name}) \nRETURN \"Users with Unconstrained Delegation\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:Computer {enabled: true, unconstraineddelegation: true,domain:$neodash_domain_name}) WHERE (NOT u.distinguishedname CONTAINS 'DOMAIN CONTROLLERS') \nRETURN \"Computers with Unconstrained Delegation\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, passwordnotreqd: true,domain:$neodash_domain_name}) \nRETURN \"Users with Password Not Required\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, pwdneverexpires: true,domain:$neodash_domain_name}) \nRETURN \"Users with Password Never Expires\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true, dontreqpreauth: true,domain:$neodash_domain_name}) \nRETURN \"Users with Dont Require Pre-Authentication (ASREP roastable)\" AS what, count(u) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true,domain:$neodash_domain_name}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds: toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset, datetime({ epochSeconds: toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds: toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon \nWHERE days_since_pwdlastset > 90 AND days_since_lastlogon < 7 \nRETURN \"Enabled Users pwdlastset > 90 days and lastlogon < 7 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true,domain:$neodash_domain_name}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds: toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset \nWHERE days_since_pwdlastset > 90 \nRETURN \"Enabled Users pwdlastset > 90 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u:User {enabled: true,domain:$neodash_domain_name}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds: toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon \nWHERE days_since_lastlogon > 90 \nRETURN \"Enabled Users lastlogon > 180 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u:User {enabled: false,domain:$neodash_domain_name}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds: toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset, datetime({ epochSeconds: toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds: toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon \nWHERE days_since_pwdlastset > 90 AND days_since_lastlogon < 7 \nRETURN \"Disabled Users pwdlastset > 90 days and lastlogon < 7 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u:User {enabled: false,domain:$neodash_domain_name}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.pwdlastset) }) AS pwdlastset, duration.inDays(datetime({ epochSeconds: toInteger(u.pwdlastset) }), date()).days AS days_since_pwdlastset \nWHERE days_since_pwdlastset > 90 \nRETURN \"Disabled Users pwdlastset > 90 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (u:User {enabled: false,domain:$neodash_domain_name}) WHERE u.pwdlastset > 0 AND u.lastlogon > 0 \nWITH u.name AS name, u.description AS description, u.enabled AS enabled, datetime({ epochSeconds: toInteger(u.lastlogon) }) AS lastlogon, duration.inDays(datetime({ epochSeconds: toInteger(u.lastlogon) }), date()).days AS days_since_lastlogon \nWHERE days_since_lastlogon > 90 \nRETURN \"Disabled Users lastlogon > 180 days\" AS what, count(name) AS number \nUNION ALL\n\nMATCH (n{enabled:true,domain:$neodash_domain_name})\nWHERE n.encryptedtextpwdallowed = true\nRETURN \"Passwords stored using reversible encryption\" AS what, count(n) AS number \nUNION ALL\n\nMATCH (n{enabled:true,domain:$neodash_domain_name})\nWHERE n.usedeskeyonly = true\nRETURN \"Accounts with DES-only Kerberos authentication\" AS what, count(n) AS number \nUNION ALL\n\nMATCH (u {owned: true,domain:$neodash_domain_name})\nRETURN \"Compromised Accounts during the Assessment\" AS what, count(u) AS number",
           "width": 8,
           "height": 4,
           "x": 0,
@@ -31,12 +34,13 @@
             "transposed": false,
             "columnWidthsType": "Relative (%)",
             "refreshButtonEnabled": true
-          }
+          },
+          "database": "bloodhoundce"
         },
         {
           "id": "38a1fe6b-b6e3-4639-9efd-ad539727ac38",
           "title": "Users with path to Tier-0 objects",
-          "query": "MATCH (u:User{enabled:true})\nWITH COUNT(u{enabled:true}) as userCount\nMATCH p = shortestPath((u:User{enabled:true})-[r:MemberOf|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|SyncLAPSPassword|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync|HasSession|CanRDP|CanPSRemote|ExecuteDCOM*1..]->(g {tier0:true})) where g <> u RETURN 100.0 * COUNT(DISTINCT u) / userCount as PercentUsersToDa",
+          "query": "MATCH (u:User {enabled: true, domain: $neodash_domain_name})\nWITH COUNT(u) AS userCount\nMATCH p = shortestPath(\n  (uu:User {enabled: true, domain: $neodash_domain_name})-[r:Owns|GenericAll|GenericWrite|WriteOwner|WriteDacl|MemberOf|ForceChangePassword|AllExtendedRights|AddMember|HasSession|Contains|GPLink|AllowedToDelegate|CoerceToTGT|TrustedBy|AllowedToAct|AdminTo|CanPSRemote|CanRDP|ExecuteDCOM|HasSIDHistory|AddSelf|DCSync|ReadLAPSPassword|ReadGMSAPassword|DumpSMSAPassword|SQLAdmin|AddAllowedToAct|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|WriteAccountRestrictions|WriteGPLink|GoldenCert|ADCSESC1|ADCSESC3|ADCSESC4|ADCSESC6a|ADCSESC6b|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC13|DCFor|SyncedToEntraUser*1..]->(g {highvalue: true, domain: $neodash_domain_name})\n)\nWHERE g <> uu\nRETURN 100.0 * COUNT(DISTINCT uu) / userCount AS PercentUsersToDa",
           "width": 8,
           "height": 4,
           "x": 16,
@@ -51,7 +55,7 @@
         {
           "id": "e02fb056-a3a1-4063-8b21-7aea5b7d4b94",
           "title": "Users with path to the DA Group",
-          "query": "MATCH (u:User{enabled:true})\nMATCH (g:Group) WHERE g.objectid ENDS WITH '-512'\nWITH g, COUNT(u{enabled:true}) as userCount\nMATCH p = shortestPath((u:User{enabled:true})-[r:MemberOf|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|SyncLAPSPassword|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync|HasSession|CanRDP|CanPSRemote|ExecuteDCOM*1..]->(g)) RETURN 100.0 * COUNT(DISTINCT u) / userCount as percent",
+          "query": "MATCH (u:User {enabled: true, domain: $neodash_domain_name})\nMATCH (g:Group{domain:$neodash_domain_name}) WHERE g.objectid ENDS WITH '-512'\nWITH g, COUNT(u) AS userCount\nMATCH p = shortestPath(\n  (uu:User {enabled: true, domain: $neodash_domain_name})-[r:Owns|GenericAll|GenericWrite|WriteOwner|WriteDacl|MemberOf|ForceChangePassword|AllExtendedRights|AddMember|HasSession|Contains|GPLink|AllowedToDelegate|CoerceToTGT|TrustedBy|AllowedToAct|AdminTo|CanPSRemote|CanRDP|ExecuteDCOM|HasSIDHistory|AddSelf|DCSync|ReadLAPSPassword|ReadGMSAPassword|DumpSMSAPassword|SQLAdmin|AddAllowedToAct|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|WriteAccountRestrictions|WriteGPLink|GoldenCert|ADCSESC1|ADCSESC3|ADCSESC4|ADCSESC6a|ADCSESC6b|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC13|DCFor|SyncedToEntraUser*1..]->(g {domain: $neodash_domain_name})\n)\nWHERE g <> uu\nRETURN 100.0 * COUNT(DISTINCT uu) / userCount AS PercentUsersToDa",
           "width": 8,
           "height": 4,
           "x": 8,
@@ -67,7 +71,7 @@
         {
           "id": "236d5e16-ba4b-4d6c-88c1-7303976d5c9f",
           "title": "AD Objects with path to DA Group",
-          "query": "MATCH (u{enabled:true})\nMATCH (g:Group) WHERE g.objectid ENDS WITH '-512'\nWITH g, COUNT(u) as userCount\nMATCH p = shortestPath((u{enabled:true})-[r:MemberOf|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|SyncLAPSPassword|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync|HasSession|CanRDP|CanPSRemote|ExecuteDCOM*1..]->(g)) RETURN 100.0 * COUNT(DISTINCT u) / userCount as percent",
+          "query": "MATCH (u{enabled:true, domain: $neodash_domain_name})\nMATCH (g:Group{domain: $neodash_domain_name}) WHERE g.objectid ENDS WITH '-512'\nWITH g, COUNT(u) as userCount\nMATCH p = shortestPath((uu{enabled:true, domain: $neodash_domain_name})-[r:Owns|GenericAll|GenericWrite|WriteOwner|WriteDacl|MemberOf|ForceChangePassword|AllExtendedRights|AddMember|HasSession|Contains|GPLink|AllowedToDelegate|CoerceToTGT|TrustedBy|AllowedToAct|AdminTo|CanPSRemote|CanRDP|ExecuteDCOM|HasSIDHistory|AddSelf|DCSync|ReadLAPSPassword|ReadGMSAPassword|DumpSMSAPassword|SQLAdmin|AddAllowedToAct|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|WriteAccountRestrictions|WriteGPLink|GoldenCert|ADCSESC1|ADCSESC3|ADCSESC4|ADCSESC6a|ADCSESC6b|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC13|DCFor|SyncedToEntraUser*1..]->(g{domain: $neodash_domain_name})) RETURN 100.0 * COUNT(DISTINCT uu) / userCount as percent",
           "width": 8,
           "height": 4,
           "x": 16,
@@ -82,7 +86,7 @@
         {
           "id": "33689f5c-27dc-4dc7-857b-0ecadc25a482",
           "title": "Computers with path to DA Group",
-          "query": "MATCH (c:Computer{enabled:true})\nMATCH (g:Group) WHERE g.objectid ENDS WITH '-512'\nWITH g, COUNT(c) as ComputerCount\nMATCH p = shortestPath((c:Computer{enabled:true})-[r:MemberOf|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|SyncLAPSPassword|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync|HasSession|CanRDP|CanPSRemote|ExecuteDCOM*1..]->(g)) RETURN 100.0 * COUNT(c) / ComputerCount as PercentComputersToDa",
+          "query": "MATCH (c:Computer{enabled:true, domain: $neodash_domain_name})\nMATCH (g:Group{domain: $neodash_domain_name}) WHERE g.objectid ENDS WITH '-512'\nWITH g, COUNT(c) as ComputerCount\nMATCH p = shortestPath((cc:Computer{enabled:true, domain: $neodash_domain_name})-[r:Owns|GenericAll|GenericWrite|WriteOwner|WriteDacl|MemberOf|ForceChangePassword|AllExtendedRights|AddMember|HasSession|Contains|GPLink|AllowedToDelegate|CoerceToTGT|TrustedBy|AllowedToAct|AdminTo|CanPSRemote|CanRDP|ExecuteDCOM|HasSIDHistory|AddSelf|DCSync|ReadLAPSPassword|ReadGMSAPassword|DumpSMSAPassword|SQLAdmin|AddAllowedToAct|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|WriteAccountRestrictions|WriteGPLink|GoldenCert|ADCSESC1|ADCSESC3|ADCSESC4|ADCSESC6a|ADCSESC6b|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC13|DCFor|SyncedToEntraUser*1..]->(g {domain: $neodash_domain_name})) WHERE g.objectid ENDS WITH '-512' RETURN 100.0 * COUNT(cc) / ComputerCount as PercentComputersToDa",
           "width": 8,
           "height": 4,
           "x": 0,
@@ -90,49 +94,28 @@
           "type": "gauge",
           "selection": {},
           "settings": {
-            "arcsLength": "0.02,0.03,0.95"
+            "arcsLength": "0.02,0.03,0.95",
+            "refreshButtonEnabled": true
           },
           "schema": []
         },
         {
           "id": "e41ac053-a79c-49fd-9d0f-84089b440ed8",
           "title": "Computers with session data",
-          "query": "MATCH (c:Computer)-[:HasSession]->()\nWITH COUNT(DISTINCT(c)) as computersWithSessions\nMATCH (c2:Computer)\nRETURN toInteger(100 * (toFloat(computersWithSessions) / COUNT(c2))) as PercentComputersWithSessions",
+          "query": "MATCH (c:Computer{domain: $neodash_domain_name})-[:HasSession]->(n{domain: $neodash_domain_name})\nWITH COUNT(DISTINCT(c)) as computersWithSessions\nMATCH (c2:Computer{domain: $neodash_domain_name})\nRETURN toInteger(100 * (toFloat(computersWithSessions) / COUNT(c2))) as PercentComputersWithSessions",
           "width": 8,
           "height": 4,
-          "x": 16,
-          "y": 20,
+          "x": 0,
+          "y": 24,
           "type": "gauge",
           "selection": {},
           "settings": {},
           "schema": []
         },
         {
-          "id": "6f4b12f9-d36c-42d0-8952-c0e88ce0dc2b",
-          "title": "Top 15 computers by # admins",
-          "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n)-[r:AdminTo]->(c) WITH c,COUNT(n) as expAdmins OPTIONAL MATCH (n)-[r:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(c) WITH c,expAdmins,COUNT(DISTINCT(n)) as unrolledAdmins RETURN SPLIT(c.name,'.')[0] as hostname,expAdmins,unrolledAdmins,expAdmins + unrolledAdmins as totalAdmins ORDER BY totalAdmins DESC LIMIT 15\n\n\n",
-          "width": 8,
-          "height": 4,
-          "x": 8,
-          "y": 28,
-          "type": "bar",
-          "selection": {
-            "index": "hostname",
-            "value": "totalAdmins",
-            "key": "(none)"
-          },
-          "settings": {
-            "layout": "horizontal",
-            "marginLeft": 120,
-            "hideSelections": true,
-            "barValues": true
-          },
-          "schema": []
-        },
-        {
           "id": "cc109b16-2d78-474f-8f50-c7f7bd3cce30",
           "title": "Top 15 computers by # admins",
-          "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n:User)-[r:AdminTo]->(c) WITH c,COUNT(n) as expAdmins OPTIONAL MATCH (n:User)-[r:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(c) WITH c,expAdmins,COUNT(DISTINCT(n)) as unrolledAdmins RETURN c.name as system,expAdmins + unrolledAdmins as AdminCount ORDER BY AdminCount desc LIMIT 15\n\n\n",
+          "query": "MATCH (c:Computer {domain: $neodash_domain_name})\nWITH c\nOPTIONAL MATCH (n:User {domain: $neodash_domain_name})-[r:AdminTo]->(c)\nWITH c, COUNT(n) AS expAdmins\nOPTIONAL MATCH (n:User {domain: $neodash_domain_name})-[r:MemberOf*1..]->(g:Group {domain: $neodash_domain_name})-[r2:AdminTo]->(c)\nWITH c, expAdmins, COUNT(DISTINCT n) AS unrolledAdmins\nRETURN c.name AS system, expAdmins + unrolledAdmins AS AdminCount\nORDER BY AdminCount DESC\nLIMIT 15\n",
           "width": 8,
           "height": 4,
           "x": 0,
@@ -160,11 +143,11 @@
         {
           "id": "99fbc733-1bcd-4a58-a811-7bba403d9cdb",
           "title": "Average Admins per Computers",
-          "query": "MATCH (c:Computer) WITH c \nOPTIONAL MATCH (n)-[r:AdminTo]->(c) \nWITH c,COUNT(n) as expAdmins \nOPTIONAL MATCH (n)-[r:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(c) \nWITH c,expAdmins,COUNT(DISTINCT(n)) as unrolledAdmins \nRETURN AVG(expAdmins + unrolledAdmins) as avgTotalAdmins\n\n\n",
+          "query": "MATCH (c:Computer{domain: $neodash_domain_name}) WITH c \nOPTIONAL MATCH (n{domain: $neodash_domain_name})-[r:AdminTo]->(c{domain: $neodash_domain_name}) \nWITH c,COUNT(n) as expAdmins \nOPTIONAL MATCH (nn{domain: $neodash_domain_name})-[r:MemberOf*1..]->(g:Group{domain: $neodash_domain_name})-[r2:AdminTo]->(c) \nWITH c,expAdmins,COUNT(DISTINCT(nn)) as unrolledAdmins \nRETURN AVG(expAdmins + unrolledAdmins) as avgTotalAdmins",
           "width": 8,
           "height": 4,
           "x": 16,
-          "y": 24,
+          "y": 28,
           "type": "value",
           "selection": {},
           "settings": {
@@ -174,8 +157,8 @@
         },
         {
           "id": "2eba82a8-30b5-4ad0-a94d-da47d237ce21",
-          "title": "Top 15 outbound control rights (First Degree Object Control) (highvalue=false)",
-          "query": "MATCH p=(u)-[r1]->(n) WHERE r1.isacl=true  and u.tier0<>true\nWITH u.name as name, LABELS(u)[1] as type, \nCOUNT(DISTINCT(n)) as controlled \nWHERE name IS NOT NULL \nRETURN type, name, controlled \nORDER BY controlled desc\nLIMIT 15\n\n\n",
+          "title": "(highvalue=false) Top 15 First Degree Control Users",
+          "query": "MATCH p=(u:User{domain: $neodash_domain_name})-[r1]->(n{domain: $neodash_domain_name}) WHERE r1.isacl=true  and u.highvalue<>true\nWITH u.name as name, LABELS(u)[1] as type, \nCOUNT(DISTINCT(n)) as controlled \nWHERE name IS NOT NULL \nRETURN type, name, controlled \nORDER BY controlled desc\nLIMIT 15\n",
           "width": 8,
           "height": 4,
           "x": 16,
@@ -201,8 +184,8 @@
         },
         {
           "id": "63fa7f47-3a8b-4615-88f6-154835764877",
-          "title": "Top 15 degree centrality algorithm (all)",
-          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.degree.stream('fullgraph')\nYIELD nodeId,score\nWhere gds.util.asNode(nodeId).name <> \"\"\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score\nORDER BY score desc limit 15\n\n",
+          "title": "(all) Top 15 degree centrality algorithm ",
+          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.degree.stream('fullgraph')\nYIELD nodeId,score\nWhere gds.util.asNode(nodeId).name <> \"\"\nAND gds.util.asNode(nodeId).domain = $neodash_domain_name\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score\nORDER BY score desc limit 15\n\n",
           "width": 8,
           "height": 4,
           "x": 0,
@@ -233,8 +216,8 @@
         },
         {
           "id": "e88a25b8-5b2d-4613-9dee-034651c22393",
-          "title": "(Tier0=false) Top 15 degree centrality algorithm",
-          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.degree.stream('fullgraph')\nYIELD nodeId,score\nwhere gds.util.asNode(nodeId).tier0=false and gds.util.asNode(nodeId).name <> \"\"\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score\nORDER BY score desc limit 15\n",
+          "title": "(highvalue=false) Top 15 degree centrality algorithm",
+          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.degree.stream('fullgraph')\nYIELD nodeId,score\nwhere gds.util.asNode(nodeId).highvalue=false and gds.util.asNode(nodeId).name <> \"\"\nAND gds.util.asNode(nodeId).domain = $neodash_domain_name\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score\nORDER BY score desc limit 15\n",
           "width": 8,
           "height": 4,
           "x": 8,
@@ -265,8 +248,8 @@
         },
         {
           "id": "65dd3ef8-7253-400f-af30-aee7335fd72a",
-          "title": "(Tier0=false) Top 15 closeness centrality algorithm",
-          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.beta.closeness.stream('fullgraph')\nYIELD nodeId, score\nwhere gds.util.asNode(nodeId).tier0=false and gds.util.asNode(nodeId).name <> \"\"\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score*100 as score\nORDER BY score desc limit 15",
+          "title": "(highvalue=false) Top 15 closeness centrality algorithm",
+          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.beta.closeness.stream('fullgraph')\nYIELD nodeId, score\nwhere gds.util.asNode(nodeId).highvalue=false and gds.util.asNode(nodeId).name <> \"\"\nAND gds.util.asNode(nodeId).domain = $neodash_domain_name\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score*100 as score\nORDER BY score desc limit 15",
           "width": 8,
           "height": 4,
           "x": 16,
@@ -305,11 +288,11 @@
         {
           "id": "a13649fb-2488-426c-aabd-ed55bb327ee7",
           "title": "Top 15 privileged groups with direct local admin rights",
-          "query": "MATCH (g:Group)-[:AdminTo]->(c:Computer) RETURN SPLIT(g.name,'@')[0] as GroupName,COUNT(c) as adminCount ORDER BY adminCount DESC LIMIT 15",
+          "query": "MATCH (g:Group{domain: $neodash_domain_name})-[:AdminTo]->(c:Computer{domain: $neodash_domain_name}) RETURN SPLIT(g.name,'@')[0] as GroupName,COUNT(c) as adminCount ORDER BY adminCount DESC LIMIT 15",
           "width": 8,
           "height": 4,
           "x": 16,
-          "y": 28,
+          "y": 32,
           "type": "bar",
           "selection": {
             "index": "GroupName",
@@ -325,7 +308,7 @@
             "hideSelections": true,
             "showOptionalSelections": false,
             "refreshButtonEnabled": true,
-            "marginLeft": 120,
+            "marginLeft": 300,
             "marginBottom": 45,
             "marginTop": 0,
             "fullscreenEnabled": true
@@ -335,7 +318,7 @@
         {
           "id": "ce1c8832-715d-4dc6-9a0b-8b4cf991d61d",
           "title": "AD Objects with path to DA Group",
-          "query": "MATCH (g:Group) WHERE g.objectid ENDS WITH '-512'\nWITH g\nMATCH p = shortestPath((u{enabled:true})-[:MemberOf|HasSession|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|CanRDP|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|CanPSRemote|SyncLAPSPassword|AZAddMembers|AZAddSecret|AZAvereContributor|AZContains|AZContributor|AZExecuteCommand|AZGetCertificates|AZGetKeys|AZGetSecrets|AZGlobalAdmin|AZGrant|AZGrantSelf|AZHasRole|AZMemberOf|AZOwner|AZOwns|AZPrivilegedRoleAdmin|AZResetPassword|AZUserAccessAdministrator|AZAppAdmin|AZCloudAppAdmin|AZRunsAs|AZKeyVaultContributor|AZVMAdminLogin|AddSelf|WriteSPN|AddKeyCredentialLink|AZAddOwner|AZManagedIdentity|AZPrivilegedAuthAdmin|AZVMContributor|AZLogicAppContributor|DumpSMSAPassword|DCSync*1..]->(g)) RETURN DISTINCT(u.name) as name\n\n\n",
+          "query": "MATCH (g:Group{domain: $neodash_domain_name}) WHERE g.objectid ENDS WITH '-512'\nWITH g\nMATCH p = shortestPath((u{enabled:true,domain: $neodash_domain_name})-[r:Owns|GenericAll|GenericWrite|WriteOwner|WriteDacl|MemberOf|ForceChangePassword|AllExtendedRights|AddMember|HasSession|Contains|GPLink|AllowedToDelegate|CoerceToTGT|TrustedBy|AllowedToAct|AdminTo|CanPSRemote|CanRDP|ExecuteDCOM|HasSIDHistory|AddSelf|DCSync|ReadLAPSPassword|ReadGMSAPassword|DumpSMSAPassword|SQLAdmin|AddAllowedToAct|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|WriteAccountRestrictions|WriteGPLink|GoldenCert|ADCSESC1|ADCSESC3|ADCSESC4|ADCSESC6a|ADCSESC6b|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC13|DCFor|SyncedToEntraUser*1..]->(g{domain: $neodash_domain_name})) RETURN DISTINCT(u.name) as name",
           "width": 8,
           "height": 4,
           "x": 0,
@@ -347,7 +330,7 @@
         {
           "id": "862e47b5-2b73-4105-8711-d2ce4dac7e0d",
           "title": "Users with path to Tier-0 Objects",
-          "query": "MATCH p = shortestPath((u:User{enabled:true})-[r:MemberOf|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|SyncLAPSPassword|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync*1..]->(g {highvalue:true})) where g <> u RETURN DISTINCT(u.name) as name",
+          "query": "MATCH p = shortestPath(\n  (u:User {enabled: true, domain: $neodash_domain_name})-[r:MemberOf|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|SyncLAPSPassword|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync*1..]->(g {highvalue: true, domain: $neodash_domain_name})\n)\nWHERE g <> u\nRETURN DISTINCT(u.name) AS name\nORDER BY name",
           "width": 8,
           "height": 4,
           "x": 0,
@@ -359,7 +342,7 @@
         {
           "id": "3e67f2d1-6d85-400c-85b4-4c3997ecf72c",
           "title": "Computers with path to DA Group",
-          "query": "MATCH p = shortestPath((c:Computer{enabled:true})-[r:MemberOf|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|SyncLAPSPassword|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync|HasSession|CanRDP|CanPSRemote|ExecuteDCOM*1..]->(g{highvalue:true})) where c<>g RETURN DISTINCT(c.name) as name\n",
+          "query": "MATCH p = shortestPath((c:Computer{enabled:true, domain: $neodash_domain_name})-[r:Owns|GenericAll|GenericWrite|WriteOwner|WriteDacl|MemberOf|ForceChangePassword|AllExtendedRights|AddMember|HasSession|Contains|GPLink|AllowedToDelegate|CoerceToTGT|TrustedBy|AllowedToAct|AdminTo|CanPSRemote|CanRDP|ExecuteDCOM|HasSIDHistory|AddSelf|DCSync|ReadLAPSPassword|ReadGMSAPassword|DumpSMSAPassword|SQLAdmin|AddAllowedToAct|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|WriteAccountRestrictions|WriteGPLink|GoldenCert|ADCSESC1|ADCSESC3|ADCSESC4|ADCSESC6a|ADCSESC6b|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC13|DCFor|SyncedToEntraUser*1..]->(g {domain: $neodash_domain_name})) WHERE g.objectid ENDS WITH '-512'  RETURN DISTINCT(c.name) as name",
           "width": 8,
           "height": 4,
           "x": 8,
@@ -370,8 +353,8 @@
         },
         {
           "id": "84b73d5c-891b-4815-9b0f-c6b4e41f3563",
-          "title": "Top 15 closeness centrality algorithm",
-          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists('fullgraph') YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.beta.closeness.stream('fullgraph')\nYIELD nodeId, score\nwhere gds.util.asNode(nodeId).name <> \"\"\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) as label, score*100 as score\nORDER BY score desc limit 15",
+          "title": "(all) Top 15 closeness centrality algorithm",
+          "query": "// Verify if fullgraph was already created. Otherwise a fullgraph is created. \nCALL gds.graph.exists(\"fullgraph\") YIELD exists\nCALL apoc.do.when(\n  exists = false, \n  'CALL gds.graph.project.cypher(\n      \"fullgraph\",\n      \"MATCH (n) RETURN id(n) AS id\",\n      \"MATCH (n)-[e]-(m) RETURN id(n) AS source, e.weight AS weight, id(m) AS target\"\n  ) YIELD graphName', \n  'RETURN null',\n  {}\n) YIELD value\n\nCALL gds.beta.closeness.stream('fullgraph')\nYIELD nodeId, score\nWHERE gds.util.asNode(nodeId).name <> \"\"\nAND gds.util.asNode(nodeId).domain = $neodash_domain_name\nRETURN gds.util.asNode(nodeId).name AS name, labels(gds.util.asNode(nodeId)) AS label, score * 100 AS score\nORDER BY score DESC\nLIMIT 15",
           "width": 8,
           "height": 4,
           "x": 8,
@@ -403,7 +386,7 @@
         {
           "id": "6f4011ec-1893-4f50-93d9-5f2a52acd22a",
           "title": "Groups with path to Tier-0 objects",
-          "query": "MATCH (g:Group)\nWITH COUNT(g) as groupCount\nMATCH p = shortestPath((g:Group)-[r:MemberOf|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|SyncLAPSPassword|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync|HasSession|CanRDP|CanPSRemote|ExecuteDCOM*1..]->(n {tier0:true})) where g <> n RETURN 100.0 * COUNT(DISTINCT g) / groupCount as PercentUsersToDa\n",
+          "query": "MATCH (g:Group {domain: $neodash_domain_name})\nWITH COUNT(g) as groupCount\nMATCH p = shortestPath((gg:Group{domain: $neodash_domain_name})-[r:Owns|GenericAll|GenericWrite|WriteOwner|WriteDacl|MemberOf|ForceChangePassword|AllExtendedRights|AddMember|HasSession|Contains|GPLink|AllowedToDelegate|CoerceToTGT|TrustedBy|AllowedToAct|AdminTo|CanPSRemote|CanRDP|ExecuteDCOM|HasSIDHistory|AddSelf|DCSync|ReadLAPSPassword|ReadGMSAPassword|DumpSMSAPassword|SQLAdmin|AddAllowedToAct|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|WriteAccountRestrictions|WriteGPLink|GoldenCert|ADCSESC1|ADCSESC3|ADCSESC4|ADCSESC6a|ADCSESC6b|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC13|DCFor|SyncedToEntraUser*1..]->(n {highvalue:true,domain: $neodash_domain_name})) where gg <> n RETURN 100.0 * COUNT(DISTINCT gg) / groupCount as PercentUsersToDa\n",
           "width": 8,
           "height": 4,
           "x": 8,
@@ -418,7 +401,7 @@
         {
           "id": "5233d537-17e1-4476-9ca8-4e9107113614",
           "title": "Groups with path to Tier-0 Objects",
-          "query": "MATCH p = shortestPath((g:Group)-[r:MemberOf|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|SyncLAPSPassword|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync|HasSession|CanRDP|CanPSRemote|ExecuteDCOM*1..]->(n {tier0:true})) where g <> n RETURN DISTINCT(g.name) as name\n",
+          "query": "MATCH p = shortestPath((g:Group{domain: $neodash_domain_name})-[r:Owns|GenericAll|GenericWrite|WriteOwner|WriteDacl|MemberOf|ForceChangePassword|AllExtendedRights|AddMember|HasSession|Contains|GPLink|AllowedToDelegate|CoerceToTGT|TrustedBy|AllowedToAct|AdminTo|CanPSRemote|CanRDP|ExecuteDCOM|HasSIDHistory|AddSelf|DCSync|ReadLAPSPassword|ReadGMSAPassword|DumpSMSAPassword|SQLAdmin|AddAllowedToAct|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|WriteAccountRestrictions|WriteGPLink|GoldenCert|ADCSESC1|ADCSESC3|ADCSESC4|ADCSESC6a|ADCSESC6b|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC13|DCFor|SyncedToEntraUser*1..]->(n {highvalue:true,domain: $neodash_domain_name})) where g <> n RETURN DISTINCT(g.name) as name",
           "width": 8,
           "height": 4,
           "x": 16,
@@ -430,7 +413,7 @@
         {
           "id": "a54ab962-3230-490d-98c7-04ac0962b1b3",
           "title": "Kerberoastable Accounts",
-          "query": "MATCH (u:User {enabled: true, hasspn: true}) WHERE NOT u.name STARTS WITH 'KRBTGT'\nRETURN DISTINCT(u.name) as name ",
+          "query": "MATCH (u:User {enabled: true, hasspn: true,domain: $neodash_domain_name}) WHERE NOT u.name STARTS WITH 'KRBTGT'\nRETURN DISTINCT(u.name) as name ",
           "width": 8,
           "height": 4,
           "x": 8,
@@ -442,7 +425,7 @@
         {
           "id": "cb6a446f-692f-4b8c-a2be-24646219ea79",
           "title": "ASREP roastable",
-          "query": "MATCH (u {enabled: true, dontreqpreauth: true}) \nRETURN DISTINCT(u.name) as name ",
+          "query": "MATCH (u {enabled: true, dontreqpreauth: true,domain: $neodash_domain_name}) \nRETURN DISTINCT(u.name) as name ",
           "width": 8,
           "height": 4,
           "x": 0,
@@ -454,7 +437,7 @@
         {
           "id": "adfb932f-2f52-43a6-a554-7535f6885645",
           "title": " Top 15 Computers with most sessions",
-          "query": "Match (c:Computer)-[r:HasSession]->(u:User)\n                            WITH c,COUNT(u) as session\n                            RETURN c.name,session\n                            ORDER BY session DESC Limit 15",
+          "query": "Match (c:Computer{domain: $neodash_domain_name})-[r:HasSession]->(u:User{domain: $neodash_domain_name})\n                            WITH c,COUNT(u) as session\n                            RETURN c.name,session\n                            ORDER BY session DESC Limit 15",
           "width": 8,
           "height": 4,
           "x": 8,
@@ -476,10 +459,10 @@
         {
           "id": "ebc9b8ed-d231-44b9-8e6d-2d419e4e5b23",
           "title": " Top 15 Users with most sessions",
-          "query": "MATCH (u:User)<-[s:HasSession]-(c:Computer)\n                            WITH u, count(s) as session\n                            RETURN u.name,session\n                            ORDER BY session DESC\n                            LIMIT 15",
+          "query": "MATCH (u:User{domain: $neodash_domain_name})<-[s:HasSession]-(c:Computer{domain: $neodash_domain_name})\n                            WITH u, count(s) as session\n                            RETURN u.name,session\n                            ORDER BY session DESC\n                            LIMIT 15",
           "width": 8,
           "height": 4,
-          "x": 0,
+          "x": 16,
           "y": 24,
           "type": "bar",
           "selection": {
@@ -498,11 +481,11 @@
         {
           "id": "635886eb-b2a5-4c0d-a230-5fdcdf80a93a",
           "title": "Local Admins",
-          "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n:User)-[r:AdminTo]->(c) WITH c OPTIONAL MATCH (n:User)-[r:MemberOf*1..]->(g:Group)-[r2:AdminTo]->(c) WITH n RETURN distinct(n.name) as name",
+          "query": "MATCH (c:Computer {domain: $neodash_domain_name})\nWITH c\nOPTIONAL MATCH (n:User {domain: $neodash_domain_name})-[r:AdminTo]->(c)\nWITH c, COLLECT(DISTINCT n.name) AS directAdmins\nOPTIONAL MATCH (n:User {domain: $neodash_domain_name})-[r:MemberOf*1..]->(g:Group {domain: $neodash_domain_name})-[r2:AdminTo]->(c)\nWITH apoc.coll.toSet(directAdmins + COLLECT(DISTINCT n.name)) AS allAdmins\nUNWIND allAdmins AS name\nRETURN DISTINCT name\n",
           "width": 8,
           "height": 4,
-          "x": 0,
-          "y": 32,
+          "x": 8,
+          "y": 28,
           "type": "table",
           "selection": {},
           "settings": {
@@ -517,7 +500,7 @@
         {
           "id": "b3f5b1fe-59c8-421f-8385-3509d22c4d9e",
           "title": "Top 15 computers with RemoteDesktopUser rights",
-          "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n)-[r:CanRDP]->(c) WITH c,COUNT(n) as expAdmins OPTIONAL MATCH (n)-[r:MemberOf*1..]->(g:Group)-[r2:CanRDP]->(c) WITH c,expAdmins,COUNT(DISTINCT(n)) as unrolledAdmins RETURN c.name as hostname,expAdmins,unrolledAdmins,expAdmins + unrolledAdmins as totalAdmins ORDER BY totalAdmins DESC LIMIT 15\n\n\n",
+          "query": "MATCH (c:Computer {domain: $neodash_domain_name}) WITH c OPTIONAL MATCH (n{domain: $neodash_domain_name})-[r:CanRDP]->(c{domain: $neodash_domain_name}) WITH c,COUNT(n) as expAdmins OPTIONAL MATCH (n{domain: $neodash_domain_name})-[r:MemberOf*1..]->(g:Group{domain: $neodash_domain_name})-[r2:CanRDP]->(c{domain: $neodash_domain_name}) WITH c,expAdmins,COUNT(DISTINCT(n)) as unrolledAdmins RETURN c.name as hostname,expAdmins,unrolledAdmins,expAdmins + unrolledAdmins as totalAdmins ORDER BY totalAdmins DESC LIMIT 15",
           "width": 8,
           "height": 4,
           "x": 8,
@@ -539,10 +522,10 @@
         {
           "id": "95c65ba1-d8d2-489c-8670-e1a53a54642a",
           "title": "Can RDP",
-          "query": "MATCH (c:Computer) WITH c OPTIONAL MATCH (n)-[r:CanRDP]->(c) WITH c OPTIONAL MATCH (n)-[r:MemberOf*1..]->(g:Group)-[r2:CanRDP]->(c) WITH n RETURN distinct(n.name) as name",
+          "query": "MATCH (c:Computer {domain: $neodash_domain_name})\nWITH c\nOPTIONAL MATCH (n {domain: $neodash_domain_name})-[r:CanRDP]->(c)\nWITH c, COLLECT(DISTINCT n.name) AS directRDP\nOPTIONAL MATCH (n {domain: $neodash_domain_name})-[r:MemberOf*1..]->(g:Group {domain: $neodash_domain_name})-[r2:CanRDP]->(c)\nWITH c, directRDP + COLLECT(DISTINCT n.name) AS allRDP\nWITH apoc.coll.toSet(allRDP) AS uniqueRDP\nUNWIND uniqueRDP AS name\nRETURN DISTINCT name\nORDER BY name\n",
           "width": 8,
           "height": 4,
-          "x": 16,
+          "x": 0,
           "y": 32,
           "type": "table",
           "selection": {},
@@ -554,6 +537,249 @@
             "refreshButtonEnabled": true
           },
           "schema": []
+        },
+        {
+          "id": "4c139316-cc43-42af-84fe-7b4c8c6f1793",
+          "title": "Accounts with DES-only Kerberos authentication",
+          "query": "MATCH (n{enabled:true,domain: $neodash_domain_name})\nWHERE n.usedeskeyonly = true\nRETURN distinct(n.name) as name",
+          "width": 8,
+          "height": 4,
+          "x": 8,
+          "y": 44,
+          "type": "table",
+          "selection": {},
+          "settings": {
+            "layout": "horizontal",
+            "marginLeft": 200,
+            "hideSelections": true,
+            "barValues": true,
+            "refreshButtonEnabled": true
+          },
+          "schema": [],
+          "database": "bloodhoundce"
+        },
+        {
+          "id": "967e4915-20c3-4054-9b31-def985e28459",
+          "title": "Domain Name",
+          "query": "MATCH (n:`Domain`) \nWHERE toLower(toString(n.`name`)) CONTAINS toLower($input) \nRETURN DISTINCT n.`name` as value,  n.`name` as display ORDER BY size(toString(value)) ASC LIMIT 5",
+          "width": 6,
+          "height": 4,
+          "x": 16,
+          "y": 44,
+          "type": "select",
+          "selection": {},
+          "settings": {
+            "type": "Node Property",
+            "entityType": "Domain",
+            "propertyType": "name",
+            "propertyTypeDisplay": "name",
+            "parameterName": "neodash_domain_name"
+          },
+          "schema": []
+        },
+        {
+          "id": "0e7e1ae1-c179-46bb-9dc5-b53197bb5679",
+          "title": "Top 15 Computers with Foreign Admins",
+          "query": "MATCH (c:Computer {domain: $neodash_domain_name})\nWITH c\n\nOPTIONAL MATCH (n)-[:AdminTo]->(c)\nWHERE (n:User OR n:Computer) AND NOT n.domain = c.domain\n\nOPTIONAL MATCH (m)-[:MemberOf*1..]->(:Group)-[:AdminTo]->(c)\nWHERE (m:User OR m:Computer) AND NOT m.domain = c.domain\n\nWITH COLLECT(DISTINCT n) + COLLECT(DISTINCT m) AS foreignAdmins, c\n\nUNWIND foreignAdmins AS foreignAdmin\nRETURN c.name, COUNT(DISTINCT foreignAdmin) AS adminCount\nORDER BY adminCount DESC\nLIMIT 15",
+          "width": 8,
+          "height": 4,
+          "x": 0,
+          "y": 36,
+          "type": "bar",
+          "selection": {
+            "index": "c.name",
+            "value": "adminCount",
+            "key": "(none)"
+          },
+          "settings": {
+            "layout": "horizontal",
+            "groupMode": "stacked",
+            "colors": "set2",
+            "barValues": true,
+            "valueScale": "linear",
+            "hideSelections": true,
+            "showOptionalSelections": false,
+            "refreshButtonEnabled": true,
+            "marginLeft": 120,
+            "marginBottom": 45,
+            "marginTop": 0,
+            "fullscreenEnabled": true
+          },
+          "schema": []
+        },
+        {
+          "id": "2887b368-7341-4fa1-b6e8-a4d0df7f0e3a",
+          "title": "Top 15 GPOs with Foreign Controllers",
+          "query": "MATCH (g:GPO)\nWHERE SPLIT(g.name, '@')[1] = $neodash_domain_name\nWITH g\nOPTIONAL MATCH (n)-[{isacl:true}]->(g)\nWHERE (n:User OR n:Computer) AND NOT n.domain = $neodash_domain_name\nOPTIONAL MATCH (m)-[:MemberOf*1..]->(:Group)-[{isacl:true}]->(g)\nWHERE (m:User OR m:Computer) AND NOT m.domain = $neodash_domain_name\nWITH COLLECT(DISTINCT n) + COLLECT(DISTINCT m) AS foreignGPOControllers, g\nUNWIND foreignGPOControllers AS foreignGPOController\nRETURN g.name, COUNT(DISTINCT foreignGPOController) AS controllerCount\nORDER BY controllerCount DESC\nLIMIT 15",
+          "width": 8,
+          "height": 4,
+          "x": 8,
+          "y": 36,
+          "type": "bar",
+          "selection": {
+            "index": "g.name",
+            "value": "controllerCount",
+            "key": "(none)"
+          },
+          "settings": {
+            "layout": "horizontal",
+            "groupMode": "stacked",
+            "colors": "set2",
+            "barValues": true,
+            "valueScale": "linear",
+            "hideSelections": true,
+            "showOptionalSelections": false,
+            "refreshButtonEnabled": true,
+            "marginLeft": 300,
+            "marginBottom": 45,
+            "marginTop": 0,
+            "fullscreenEnabled": true
+          },
+          "schema": []
+        },
+        {
+          "id": "a7896f86-bd03-4546-ba05-b776c36250cf",
+          "title": "Top 15 Groups with Foreign Controllers",
+          "query": "MATCH (g:Group {domain: $neodash_domain_name})\nWITH g\nOPTIONAL MATCH (n)-[{isacl:true}]->(g)\nWHERE (n:User OR n:Computer) AND NOT n.domain = g.domain\nOPTIONAL MATCH (m)-[:MemberOf*1..]->(:Group)-[{isacl:true}]->(g)\nWHERE (m:User OR m:Computer) AND NOT m.domain = g.domain\nWITH COLLECT(DISTINCT n) + COLLECT(DISTINCT m) AS foreignGroupControllers, g\nUNWIND foreignGroupControllers AS foreignGroupController\nRETURN g.name, COUNT(DISTINCT foreignGroupController) AS controllerCount\nORDER BY controllerCount DESC\nLIMIT 15",
+          "width": 8,
+          "height": 4,
+          "x": 16,
+          "y": 36,
+          "type": "bar",
+          "selection": {
+            "index": "g.name",
+            "value": "controllerCount",
+            "key": "(none)"
+          },
+          "settings": {
+            "layout": "horizontal",
+            "groupMode": "stacked",
+            "colors": "set2",
+            "barValues": true,
+            "valueScale": "linear",
+            "hideSelections": true,
+            "showOptionalSelections": false,
+            "refreshButtonEnabled": true,
+            "marginLeft": 300,
+            "marginBottom": 45,
+            "marginTop": 0,
+            "fullscreenEnabled": true
+          },
+          "schema": []
+        },
+        {
+          "id": "0ecd8812-7169-48d2-838a-026388613c9d",
+          "title": "Top 15 Users with Foreign Session",
+          "query": "MATCH (s:Computer)-[r:HasSession*1]->(t:User {domain: $neodash_domain_name})\nWHERE NOT s.domain = t.domain\nWITH s, COLLECT(DISTINCT t) AS uniqueUsers\nRETURN s.name, SIZE(uniqueUsers) AS count\nORDER BY count DESC\nLIMIT 15",
+          "width": 8,
+          "height": 4,
+          "x": 0,
+          "y": 40,
+          "type": "bar",
+          "selection": {
+            "index": "s.name",
+            "value": "count",
+            "key": "(none)"
+          },
+          "settings": {
+            "layout": "horizontal",
+            "groupMode": "stacked",
+            "colors": "set2",
+            "barValues": true,
+            "valueScale": "linear",
+            "hideSelections": true,
+            "showOptionalSelections": false,
+            "refreshButtonEnabled": true,
+            "marginLeft": 300,
+            "marginBottom": 45,
+            "marginTop": 0,
+            "fullscreenEnabled": true
+          },
+          "schema": []
+        },
+        {
+          "id": "90b16141-15a3-460a-a62c-4583b99cb00b",
+          "title": "Top 15 Foreign objects",
+          "query": "MATCH (n)-[r]->(m{domain: $neodash_domain_name})\nWHERE NOT n.domain = m.domain\nRETURN \nLABELS(n)[1] AS sourceLabel, \nn.name AS sourceName, \nTYPE(r) AS relationshipType, \n LABELS(m)[1] AS targetLabel, \nm.name AS targetName\nLIMIT 15",
+          "width": 8,
+          "height": 4,
+          "x": 8,
+          "y": 40,
+          "type": "table",
+          "selection": {},
+          "settings": {
+            "layout": "horizontal",
+            "marginLeft": 200,
+            "hideSelections": true,
+            "barValues": true,
+            "refreshButtonEnabled": true,
+            "compact": true,
+            "fullscreenEnabled": true
+          },
+          "schema": []
+        },
+        {
+          "id": "029bba74-5fc0-4577-b24e-aa989492df5a",
+          "title": "Weak trusts - SID Filtering disabled",
+          "query": "MATCH p=(n:Domain{domain:$neodash_domain_name})-[r]-(m:Domain) where r.sidfiltering=false RETURN DISTINCT(m.name) as domain",
+          "width": 8,
+          "height": 4,
+          "x": 16,
+          "y": 40,
+          "type": "table",
+          "selection": {},
+          "settings": {
+            "layout": "horizontal",
+            "marginLeft": 200,
+            "hideSelections": true,
+            "barValues": true,
+            "refreshButtonEnabled": true,
+            "compact": true,
+            "fullscreenEnabled": true
+          },
+          "schema": []
+        },
+        {
+          "id": "788b03f6-9d51-4ea8-aa44-f0cf5c31da73",
+          "title": "Top 15 Foreign Tier 0 Control Users ",
+          "query": "MATCH p = shortestpath((u:User{enabled:true})-[r:Owns|GenericAll|GenericWrite|WriteOwner|WriteDacl|MemberOf|ForceChangePassword|AllExtendedRights|AddMember|HasSession|Contains|GPLink|AllowedToDelegate|CoerceToTGT|TrustedBy|AllowedToAct|AdminTo|CanPSRemote|CanRDP|ExecuteDCOM|HasSIDHistory|AddSelf|DCSync|ReadLAPSPassword|ReadGMSAPassword|DumpSMSAPassword|SQLAdmin|AddAllowedToAct|WriteSPN|AddKeyCredentialLink|SyncLAPSPassword|WriteAccountRestrictions|WriteGPLink|GoldenCert|ADCSESC1|ADCSESC3|ADCSESC4|ADCSESC6a|ADCSESC6b|ADCSESC9a|ADCSESC9b|ADCSESC10a|ADCSESC10b|ADCSESC13|DCFor|SyncedToEntraUser*1..]->(n{domain:$neodash_domain_name, highvalue:true}))\nWHERE u.domain <> n.domain AND u <> n \nWITH u, COLLECT(DISTINCT n) AS admins\nRETURN u.name AS name, SIZE(admins) AS adminCount\nORDER BY adminCount DESC\nLIMIT 15",
+          "width": 8,
+          "height": 4,
+          "x": 0,
+          "y": 44,
+          "type": "bar",
+          "selection": {
+            "index": "name",
+            "value": "adminCount",
+            "key": "(none)"
+          },
+          "settings": {
+            "layout": "horizontal",
+            "groupMode": "stacked",
+            "colors": "set2",
+            "barValues": true,
+            "valueScale": "linear",
+            "hideSelections": true,
+            "showOptionalSelections": false,
+            "refreshButtonEnabled": true,
+            "marginLeft": 300,
+            "marginBottom": 45,
+            "marginTop": 0,
+            "fullscreenEnabled": true
+          },
+          "schema": []
+        },
+        {
+          "id": "bba3c182-f4ae-4e95-854a-f22704c120d5",
+          "title": "Kerberoastable Accounts to Tier-0",
+          "query": "MATCH p = shortestPath(\n  (u:User {enabled: true,hasspn: true,domain: $neodash_domain_name})-[r:MemberOf|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|SQLAdmin|ReadGMSAPassword|HasSIDHistory|SyncLAPSPassword|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync*1..]->(g {highvalue: true, domain: $neodash_domain_name})\n)\nWHERE g <> u and NOT u.objectid ENDS WITH \"-502\"\nRETURN DISTINCT(u.name) AS name\nORDER BY name",
+          "width": 8,
+          "height": 4,
+          "x": 16,
+          "y": 20,
+          "type": "table",
+          "selection": {},
+          "settings": {}
         }
       ]
     }
@@ -564,9 +790,12 @@
     "activeReducers": [],
     "advanced-charts": {
       "active": true
+    },
+    "actions": {
+      "active": true
     }
   },
-  "_tier0houndVersion": "20240311",
+  "_tier0houndVersion": "20250129",
   "_tier0houndSource": "https://github.com/m8r1us/Tier0Hound",
   "uuid": "9934707a-5c7e-4077-9e43-a1460e969ec8"
 }
